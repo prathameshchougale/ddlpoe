@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title></title>
+</head>
+<body>
+	<pre>
+		
+
+## importing necessary libraries
+import tensorflow
+from tensorflow import keras
+from tensorflow.keras import Sequential
+from tensorflow.keras.layers import Dense, Flatten
+(X_train, y_train), (X_test, y_test) = keras.datasets.mnist.load_data()
+X_test.shape
+y_train
+y_train.shape
+import matplotlib.pyplot as plt
+plt.imshow(X_train[9])
+print(X_train[9])
+## Scaling
+X_train = X_train/255
+X_test = X_test/255
+print(X_train[9])
+model = Sequential()
+model.add(Flatten(input_shape=(28,28)))
+model.add(Dense(128, activation='relu'))
+model.add(Dense(32, activation='relu'))
+model.add(Dense(10, activation='softmax'))
+model.summary()
+model.compile(loss='sparse_categorical_crossentropy', optimizer='Adam', metrics=['accuracy'])
+history = model.fit(X_train, y_train, epochs=25, validation_split=0.2)
+y_prob = model.predict(X_test)
+y_pred = y_prob.argmax(axis=-1)
+from sklearn.metrics import accuracy_score
+ann_accuracy = accuracy_score(y_test, y_pred)
+ann_accuracy
+## Visualizing
+plt.plot(history.history['accuracy'])
+plt.plot(history.history['val_accuracy'])
+plt.plot(history.history['loss'])
+plt.plot(history.history['val_loss'])
+plt.plot(history.history['accuracy'])
+plt.plot(history.history['val_accuracy'])
+plt.plot(history.history['loss'])
+plt.plot(history.history['val_loss'])
+## Predicting
+plt.imshow(X_test[0])
+model.predict(X_test[0].reshape(1,28,28)).argmax(axis=-1)
+
+################################################## C N N ###################################################
+# **MNIST USING CNN**
+
+## USING CNN
+from tensorflow.keras.layers import Conv2D, MaxPooling2D
+X_train = X_train.reshape(-1, 28, 28, 1)
+X_test = X_test.reshape(-1, 28, 28, 1)
+model = Sequential()
+model.add(Conv2D(32, (3, 3), activation='relu', input_shape=(28, 28, 1)))
+model.add(MaxPooling2D((2, 2)))
+model.add(Conv2D(64, (3, 3), activation='relu'))
+model.add(MaxPooling2D((2, 2)))
+model.add(Conv2D(64, (3, 3), activation='relu'))
+model.add(Flatten())
+model.add(Dense(64, activation='relu'))
+model.add(Dense(10, activation='softmax'))
+model.compile(loss='sparse_categorical_crossentropy', optimizer='Adam', metrics=['accuracy'])
+history = model.fit(X_train, y_train, epochs=10, validation_split=0.2)
+y_prob = model.predict(X_test)
+y_pred = y_prob.argmax(axis=-1)
+from sklearn.metrics import accuracy_score
+cnn_accuracy = accuracy_score(y_test, y_pred)
+cnn_accuracy
+## Visualizing
+plt.plot(history.history['accuracy'])
+plt.plot(history.history['val_accuracy'])
+plt.plot(history.history['loss'])
+plt.plot(history.history['val_loss'])
+## Predicting
+plt.imshow(X_test[0])
+model.predict(X_test[0].reshape(1,28,28,1)).argmax(axis=-1)
+## Predicting
+plt.imshow(X_test[1])
+model.predict(X_test[1].reshape(1,28,28,1)).argmax(axis=-1)
+################################################################################################
+ann_accuracy
+cnn_accuracy
+## Comparing Accuracies of ANN & CNN
+import matplotlib.pyplot as plt
+
+accuracy_scores = [ann_accuracy, cnn_accuracy, cnn_accuracy - ann_accuracy]
+model_names = ['ANN', 'CNN', 'DIFFERENCE']
+
+bars = plt.bar(model_names, accuracy_scores, color=['blue', 'green', 'red'])
+
+
+for bar in bars:
+  height = bar.get_height()
+  plt.text(bar.get_x() + bar.get_width()/2.0, height, f'{height:.2f}', ha='center', va='bottom')
+
+plt.xlabel('Model')
+plt.ylabel('Accuracy')
+plt.title('Comparison of ANN and CNN Accuracy')
+plt.show()
+
+# **CIFAR10 USING CNN**
+## importing necessary libraries
+import tensorflow
+from tensorflow import keras
+from tensorflow.keras import Sequential
+from tensorflow.keras import layers
+from tensorflow.keras.layers import Dense, Flatten
+import numpy as np
+(X_train, y_train), (X_test, y_test) = keras.datasets.cifar10.load_data()
+class_names = ['airplane', 'automobile', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse', 'ship', 'truck']
+X_train, X_test = X_train / 255.0, X_test / 255.0
+def create_cnn_model():
+    model = keras.Sequential([
+        layers.Conv2D(32, (3,3), activation='relu', input_shape=(32, 32, 3)),
+        layers.MaxPooling2D((2,2)),
+        layers.Conv2D(64, (3,3), activation='relu'),
+        layers.MaxPooling2D((2,2)),
+        layers.Conv2D(128, (3,3), activation='relu'),
+        layers.Flatten(),
+        layers.Dense(128, activation='relu'),
+        layers.Dense(10, activation='softmax')
+    ])
+    return model
+
+cnn_model = create_cnn_model()
+cnn_model.compile(optimizer='adam', loss='sparse_categorical_crossentropy', metrics=['accuracy'])
+history = cnn_model.fit(X_train, y_train, epochs=10, validation_data=(X_test, y_test))
+loss, accuracy = cnn_model.evaluate(X_test, y_test)
+print(f"Test Accuracy: {accuracy * 100:.2f}%")
+predictions = np.argmax(cnn_model.predict(X_test), axis=1)
+W_grid = 6
+L_grid = 6
+fig, axes = plt.subplots(L_grid, W_grid, figsize=(17, 17))
+axes = axes.ravel()
+n_train = len(X_train)
+
+for i in np.arange(0, W_grid * L_grid):
+    index = np.random.randint(0, n_train)
+    axes[i].imshow(X_train[index])
+    label_index = int(y_train[index])
+    axes[i].set_title(class_names[label_index], fontsize=8)
+    axes[i].axis('off')
+
+plt.subplots_adjust(hspace=0.4)
+plt.show()
+plt.imshow(X_test[0])
+cnn_model.predict(X_test[0].reshape(1,32,32,3)).argmax(axis=-1)
+
+plt.plot(history.history['loss'], label='Training Loss')
+plt.plot(history.history['val_loss'], label='Validation Loss')
+plt.legend()
+plt.title("Loss vs Epochs")
+plt.show()
+
+plt.plot(history.history['accuracy'], label='Training Accuracy')
+plt.plot(history.history['val_accuracy'], label='Validation Accuracy')
+plt.legend()
+plt.title("Accuracy vs Epochs")
+plt.show()
+# **CIFAR10 USING ANN**
+ann_model = keras.Sequential([
+    layers.Flatten(input_shape=(32,32,3)),
+    layers.Dense(512, activation='relu'),
+    layers.Dense(10, activation='softmax')
+])
+ann_model.compile(optimizer='adam', loss='sparse_categorical_crossentropy', metrics=['accuracy'])
+ann_history = ann_model.fit(X_train, y_train, epochs=10, validation_data=(X_test, y_test))
+# **Comparison of ANN and CNN on CIFAR-10**
+plt.bar(['ANN', 'CNN'], [ann_history.history['val_accuracy'][-1], history.history['val_accuracy'][-1]], color=['red', 'blue'])
+plt.ylabel("Validation Accuracy")
+plt.title("Comparison of ANN and CNN on CIFAR-10")
+plt.show()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	</pre>
+
+</body>
+</html>
